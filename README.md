@@ -17,7 +17,10 @@ To run the test, type:
 ```
 
 Usage:  
-    python qsub_util.py cmd_file dep_file mem_file /path/to/working/dir
+
+```
+python qsub_util.py cmd_file dep_file mem_file /path/to/working/dir
+```   
     
 Each line in cmd_file should be a command which would be run from terminal. IE:  
 ```
