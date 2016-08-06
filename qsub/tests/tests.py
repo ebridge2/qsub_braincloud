@@ -36,16 +36,17 @@ class TestQsubUtility(unittest.TestCase):
         cmdfn = 'cmd.txt'
         depfn = 'dep.txt'
         memfn = 'mem.txt'
+
+        wd, err = execute_cmd('pwd')
+        wd = wd.rstrip()
+
         fcmd = open(cmdfn, 'w')
-        fcmd.writelines('%s\n' % cmd for cmd in ['cat ' + test + '.txt >> testo.txt' for test in self.test_files])
+        fcmd.writelines('%s\n' % cmd for cmd in ['echo \"$(cat ' + wd + "/" + test + '.txt)\" >> ' + wd + '/testo.txt' for test in self.test_files])
         fdep = open(depfn, 'w')
         fdep.writelines('%s\n' % dep for dep in ['4', '', '', '2', '', ''])
 
         fmem = open(memfn, 'w')
         fmem.writelines('%s\n' % mem for mem in ['', '', '', '1MB', '', ''])
-
-        wd, err = execute_cmd('pwd')
-        wd = wd.rstrip()
 
         print(open(cmdfn, 'r').readlines())
 
