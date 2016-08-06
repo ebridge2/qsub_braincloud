@@ -28,3 +28,30 @@ Each line in mem_file should be an amount of memory or none. IE:
 
 ```
 
+Each line in dep_file should be the zero-indexed line of a command that the command at this line relies on. IE:
+```
+4
+
+
+2
+
+
+
+```
+
+Running, from a python session:
+```
+    import qsub
+    qsub.qsub_submit(cmd_file, dep_file, mem_file, wd)
+```
+Will submit your scripts thru qsub. If you use the above as a test, this would produce the result:
+```
+test2
+test3
+test6
+test5
+test4
+test1
+```
+
+
