@@ -5,11 +5,13 @@
 This is a resource which will submit jobs. It has been tested on the Braincloud cluster.
 
 Test:
-    Navigate to the folder:
+Navigate to the folder:
 ```
 qsub/tests
 ```
-    To run the test, type:
+
+To run the test, type:
+    
 ```
     python tests.py
 ```
