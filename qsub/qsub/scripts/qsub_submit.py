@@ -14,7 +14,6 @@ def qsub_submit(command_file, dep_file, mem_file, wd=None):
     job_submit.submit_execution_chain()
 
 def main():
-
     parser = ArgumentParser()
     parser.add_argument("command_file", help="File where each line is a " +
                         "command to run.")
@@ -25,6 +24,7 @@ def main():
     parser.add_argument("-w", "--working_dir", help="The working directory "+
                         " in which to execute commands.")
     parser.parse_args()
+    print(parser.command_file)
 
     self.qsub_submit(parser.command_file, parser.dep_file, parser.mem_file,
                 wd=parser.working_dir) 

@@ -36,7 +36,6 @@ class qsub_util:
         if wd is not None:
             self.wd = wd
         try:
-            print("Hi!")
             with open(command_file, 'r') as commandf, open(dependency_file, 'r') as depf, open(mem_file, 'r') as memf:
                 print('Reading Inputs...')
                 self.com_lines = commandf.read().splitlines()
@@ -74,6 +73,7 @@ class qsub_util:
         """
         Submits jobs serially using qsub to the cluster.
         """
+        print("Submitting Jobs...")
         # sort by the dependencies, so all deps will have
         # been run by time we get to a new command.
         order = sorted(range(len(self.dep_lines)), key=lambda x:self.dep_lines[x])
@@ -83,11 +83,12 @@ class qsub_util:
         self.com_lines = [ self.com_lines[i] for i in order] # rearrange
         self.mem_lines = [ self.mem_lines[i] for i in order] # rearrange
 
-        if(len(self.com_lines) < max(self.dep_lines)):
-            raise ValueError(('You have a dependency for line %s with ' +
-                              'only %s commands.')% 
-                              (max(self.dep_lines),
-                               len(self.com_lines)))
+        if not all(v is None for v in self.dep_lines):
+            if(len(self.com_lines) < max(self.dep_lines)):
+                raise ValueError(('You have a dependency for line %s with ' +
+                                  'only %s commands.')% 
+                                  (max(self.dep_lines),
+                                   len(self.com_lines)))
         for i in range(0, len(self.com_lines)):
             cmd = self.com_lines[i]
             mem = self.mem_lines[i]
@@ -98,9 +99,9 @@ class qsub_util:
             if (self.wd is not None): qsub_cmd += (" -o " + self.wd + " -e " + self.wd)
             if (dep is not None): qsub_cmd += (" -hold_jid " + self.job_ids[dep])
 
-            print(qsub_cmd)
             (out, err) = execute_cmd(qsub_cmd)
             self.job_ids[i] = re.search('(?<=Your job )(.*?)(?= )', out).group(0)
+
         pass
 
 def execute_cmd(cmd):

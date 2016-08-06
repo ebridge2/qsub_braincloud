@@ -12,8 +12,8 @@ import unittest
 import sys
 sys.path.insert(0, '../')
 from subprocess import Popen, PIPE
-from qsub.scripts.qsub_submit import qsub_submit
-from qsub.qsub_util import qsub_util as qsu
+import qsub
+from qsub import qsub_submit as qsu
 from qsub import execute_cmd
 
 
@@ -46,12 +46,21 @@ class TestQsubUtility(unittest.TestCase):
         fdep.writelines('%s\n' % dep for dep in ['4', '', '', '2', '', ''])
 
         fmem = open(memfn, 'w')
-        fmem.writelines('%s\n' % mem for mem in ['', '', '', '1MB', '', ''])
+        fmem.writelines('%s\n' % mem for mem in ['', '', '', '', '', ''])
 
-        print(open(cmdfn, 'r').readlines())
+        fcmd.close()
+        fdep.close()
+        fmem.close()
 
-        sub = qsu(wd + "/" + cmdfn, wd + "/" + depfn, wd + "/" + memfn, wd=wd)
-        sub.submit_execution_chain()
+        qsu(wd + "/" + cmdfn, wd + "/" + depfn, wd + "/" + memfn, wd=wd)
+        while(execute_cmd('qstat')[0] != ''):
+            execute_cmd("sleep 10") # check again in 10 seconds
+        execute_cmd("sleep 10") # sometimes opening this file too soon is bad :(
+        with open('testo.txt', 'r') as fout:
+            prod = fout.read().splitlines()
+
+            self.assertEqual(prod[4], 'test4')
+            self.assertEqual(prod[5], 'test1')
         pass
 
 
