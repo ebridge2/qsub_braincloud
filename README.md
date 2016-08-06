@@ -4,6 +4,16 @@
 
 This is a resource which will submit jobs. It has been tested on the Braincloud cluster.
 
+Test:
+    Navigate to the folder:
+```
+qsub/tests
+```
+    To run the test, type:
+```
+    python tests.py
+```
+
 Usage:  
     python qsub_util.py cmd_file dep_file mem_file /path/to/working/dir
     
