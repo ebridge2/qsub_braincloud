@@ -25,38 +25,44 @@ from argparse import ArgumentParser
 from subprocess import Popen, PIPE
 import numpy as np
 import re
+import sys
 
 
 class qsub_util:
     """
     A class to make submitting jobs with qsub easier.
     """
-    def __init__(self, command_file, dependency_file, memory_file, wd=None):
+    def __init__(self, command_file, dependency_file, mem_file, wd=None):
+        if wd is not None:
+            self.wd = wd
         try:
-            with open(command_file) as commandf, open(dependency_file) as depf, open(mem_file) as memf:
+            print(command_file)
+            with open(command_file, 'r') as commandf, open(dependency_file, 'r') as depf, open(mem_file, 'r') as memf:
                 print('Reading Inputs...')
                 self.com_lines = commandf.readlines()
+                print(commandf.readlines())
                 try:
-                    self.dep_lines = [int(i) if not i else None for i in [re.sub('\\s+', None, i) for i in depf.readlines()]]
+                    self.dep_lines = [int(i) if not i else None for i in [re.sub('\\s+', '', i) for i in depf.readlines()]]
                 except ValueError as e:
                     print("You have passed an invalid line in your dependencies file. \n"+
                           "Is one of your lines not an Integer?")
-                    print('Operation failed: %s', e.strerror)
+                    
                     sys.exit(1)
                 try:
                     self.mem_lines =  [str(i) if not i else None for i in [re.sub('\\s+', '', i) for i in memf.readlines()]]
                 except ValueError as e:
                     print("You have passed an invalid line in your memory file.")
-                    print ('Operation failed: %s', e.strerror)
+                    #print ('Operation failed: %s', e.strerror)
                     sys.exit(1)
-                if ((length(com_lines) == length(dep_lines))
-                        and(length(dep_lines) == length(mem_lines))):
+                if ((len(self.com_lines) == len(self.dep_lines))
+                        and(len(self.dep_lines) == len(self.mem_lines))):
                     print('Everything is good!')
                 else:
                     raise ValueError('The dimensions of your input files are not correct.')
-                self.job_ids = [None] * length(self.com_lines)
+                self.job_ids = [None] * len(self.com_lines)
         except IOError as e:
-            print('Operation failed: %s', e.strerror)
+             print('One of your files is unreadable.')
+        print(self.com_lines)
 
     def submit_execution_chain(self):
         """
@@ -64,15 +70,16 @@ class qsub_util:
         """
         order = sorted(self.dep_lines) # sort by the dependencies, so all deps will have
                                        # been run by time we get to a new command.
-        self.com_lines = self.com_lines[order] # rearrange
-        self.mem_lines = self.mem_lines[order] # rearrange
 
-        if(length(self.com_lines) < max(self.dep_lines)):
+        self.com_lines = [ self.com_lines[i] for i in order] # rearrange
+        self.mem_lines = [ self.mem_lines[i] for i in order] # rearrange
+
+        if(len(self.com_lines) < max(self.dep_lines)):
             raise ValueError(('You have a dependency for line %s with ' +
                               'only %s commands.')% 
                               (max(self.dep_lines),
-                               length(self.com_lines)))
-        for i in range(0, length(self.com_lines)):
+                               len(self.com_lines)))
+        for i in range(0, len(self.com_lines)):
             cmd = self.com_lines[i]
             mem = self.mem_lines[i]
             dep = self.dep_lines[i]
@@ -80,16 +87,16 @@ class qsub_util:
             if (mem is not None): qsub_cmd += (" -l h_vmem=" + mem)
             if (dep is not None): qsub_cmd += (" -W depend=afterok:" + self.job_ids[dep])
             if (self.wd is not None): qsub_cmd += (" -o " + self.wd + " -e " + self.wd)
-            self.job_ids[i] = self.execute_cmd(qsub_cmd)
+            self.job_ids[i] = execute_cmd(qsub_cmd)
         pass
 
-    def execute_cmd(self, cmd):
-        """
-            Executes a command.
-        """
-        p = Popen(cmd, stdout=PIPE, shell=True)
-        out, err = p.communicate()
-        code = p.returncode
-        if code:
-            sys.exit("Error " + str(code) + ": " + err)
-        return out, err
+def execute_cmd(cmd):
+    """
+        Executes a command.
+    """
+    p = Popen(cmd, stdout=PIPE, stderr=PIPE, shell=True)
+    out, err = p.communicate()
+    code = p.returncode
+    if code:
+        sys.exit("Error " + str(code) + ": " + err)
+    return out, err
