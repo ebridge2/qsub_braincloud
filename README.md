@@ -34,7 +34,7 @@ Each line in mem_file should be an amount of memory or none. IE:
 
 
 
-1MB
+1M
 
 
 ```
